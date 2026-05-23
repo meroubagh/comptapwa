@@ -1,10 +1,11 @@
 {
-  "name": "تطبيق الويب التقدمي للمبتدئين",
-  "short_name": "تطبيقي",
+  "name": "تطبيق المحاسبة الذكي",
+  "short_name": "ComptaPWA",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3498db",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon.png",
