@@ -1,1 +1,169 @@
 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خبير المحاسبة والاقتصاد الذكي - SCF</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #27ae60;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.2rem; }
+
+        #chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .ai-msg {
+            background: white;
+            align-self: flex-start;
+            border-right: 5px solid var(--secondary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .user-msg {
+            background: var(--primary-color);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .input-area {
+            background: white;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 30px;
+            outline: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .loading { font-style: italic; color: #888; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>المساعد المحاسبي الذكي (SCF)</h1>
+</header>
+
+<div id="chat-window">
+    <div class="msg ai-msg">
+        أهلاً بك أستاذ. أنا مساعدك المبرمج على قواعد النظام المحاسبي المالي الجزائري. كيف يمكنني خدمتك اليوم؟
+    </div>
+</div>
+
+<div class="input-area">
+    <input type="text" id="userInput" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key === 'Enter') askAI()" />
+    <button onclick="askAI()">إرسال</button>
+</div>
+
+<script>
+    // تم دمج مفتاحك الحقيقي هنا
+    const API_KEY = "AIzaSyCMdaszJsaNl9S3OUhvmtNFlJr-CtQw0y8"; 
+    const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+    async function askAI() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendMsg(text, 'user-msg');
+        input.value = '';
+
+        const tempId = appendMsg('جاري التحليل العلمي الموجه...', 'ai-msg loading');
+
+        try {
+            const response = await fetch(MODEL_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `أنت خبير محاسبي واقتصادي جزائري. التزم بما يلي:
+                            1. الإجابة بناءً على النظام المحاسبي المالي (SCF).
+                            2. كن دقيقاً علمياً وصارماً، واجعل الإجابات قصيرة جداً.
+                            3. اربط الأسئلة ببعضها إذا كان هناك سياق.
+                            4. لا تستخدم لغة تسويقية.
+                            السؤال: ${text}`
+                        }]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            const aiReply = data.candidates[0].content.parts[0].text;
+            document.getElementById(tempId).innerText = aiReply;
+            document.getElementById(tempId).classList.remove('loading');
+        } catch (err) {
+            document.getElementById(tempId).innerText = "حدث خطأ في الاتصال بالسحاب. يرجى المحاولة لاحقاً.";
+        }
+    }
+
+    function appendMsg(text, className) {
+        const chat = document.getElementById('chat-window');
+        const div = document.createElement('div');
+        const id = 'id' + Date.now();
+        div.id = id;
+        div.className = 'msg ' + className;
+        div.innerText = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        return id;
+    }
+</script>
+
+</body>
+</html>
