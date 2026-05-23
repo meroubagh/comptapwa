@@ -3,40 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيقي الأول PWA</title>
-    <!-- ربط ملف البيان -->
-    <link rel="manifest" href="manifest.json">
-    <!-- لون شريط الحالة في الأندرويد -->
-    <meta name="theme-color" content="#3498db">
+    <title>تطبيق المحاسبة الذكي PWA</title>
     
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
             text-align: center;
-            background-color: #f4f6f7;
-            padding: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .card {
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .user-message {
+            background-color: #3498db;
+            color: white;
+            align-self: flex-start;
+            border-bottom-right-radius: 2px;
+        }
+        .ai-message {
+            background-color: white;
+            color: #333;
+            align-self: flex-end;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f5;
+        }
+        #input-container {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #e1e8ed;
         }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccd6dd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+            padding-right: 20px;
+        }
+        input:focus { border-color: #3498db; }
+        button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #27ae60; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>مرحباً بك في تطبيقي الأول!</h1>
-        <p>هذا التطبيق يعمل بكفاءة حتى لو كنت غير متصل بالإنترنت.</p>
+    <header>مساعد المحاسبة والاقتصاد الذكي</header>
+
+    <div id="chat-container">
+        <div class="message ai-message">
+            مرحباً بك! أنا مساعدك الذكي الموجه. كيف يمكنني مساعدتك اليوم في مسائل المحاسبة أو الجوانب العلمية والتقنية؟
+        </div>
+    </div>
+
+    <div id="input-container">
+        <input type="text" id="user-input" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">إرسال</button>
     </div>
 
     <script>
-        // التحقق من أن المتصفح يدعم Service Worker
+        // تسجيل الـ Service Worker مع تصحيح المسار النسبي ليعمل داخل المجلد الفرعي
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-            .then(() => console.log('تم تسجيل Service Worker بنجاح!'))
-            .catch(err => console.log('فشل تسجيل Service Worker:', err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('تم تسجيل الـ Service Worker بنجاح:', reg.scope))
+                .catch(err => console.log('فشل تسجيل الـ Service Worker:', err));
+            });
+        }
+
+        // دالة إرسال الرسائل وعرضها في الواجهة
+        async function sendMessage() {
+            const inputField = document.getElementById('user-input');
+            const query = inputField.value.trim();
+            if (!query) return;
+
+            appendMessage(query, 'user-message');
+            inputField.value = '';
+
+            // إظهار مؤشر الانتظار
+            const loadingId = appendMessage('جاري التفكير الموجه...', 'ai-message');
+
+            try {
+                const reply = await askAI(query);
+                document.getElementById(loadingId).innerText = reply;
+            } catch (error) {
+                document.getElementById(loadingId).innerText = 'عذراً، حدث خطأ أثناء الاتصال بالخادم الأصلي.';
+            }
+        }
+
+        function appendMessage(text, className) {
+            const container = document.getElementById('chat-container');
+            const msgDiv = document.createElement('div');
+            const id = 'msg-' + Date.now();
+            msgDiv.id = id;
+            msgDiv.className = `message ${className}`;
+            msgDiv.innerText = text;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        // ربط الذكاء الاصطناعي وتوجيهه تلقائياً وصارماً
+        async function askAI(userQuery) {
+            // التوجيه الصارم والدقيق للذكاء الاصطناعي
+            const systemInstruction = "أنت مساعد تعليمي وخبير في المحاسبة والاقتصاد والنظام المحاسبي المالي (SCF). أجب باختصار شديد، وبشكل علمي وصارم، وركز على علاقة الأسئلة ببعضها البعض، وتجنب العبارات التسويقية تماماً.";
+            
+            // ملاحظة: هنا سنربط مفتاح الـ API المجاني الخاص بك لاحقاً، حالياً سنحاكي الاستجابة مؤقتاً للتجربة العلمية
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(`وصلني سؤالك: "${userQuery}". عندما نضع مفتاح الـ API المجاني هنا، سأجيبك فوراً بناءً على قواعد التوجيه العلمية الصارمة المعطاة لي.`);
+                }, 1000);
+            });
         }
     </script>
 </body>
