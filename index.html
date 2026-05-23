@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق المحاسبة الذكي PWA</title>
-    
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#2c3e50">
-
+    <title>مساعد المحاسبة والاقتصاد الذكي</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -88,30 +84,20 @@
 </head>
 <body>
 
-    <header>مساعد المحاسبة والاقتصاد الذكي</header>
+    <header>مساعد المحاسبة والاقتصاد الذكي (التوجيه الصارم)</header>
 
     <div id="chat-container">
         <div class="message ai-message">
-            مرحباً بك! أنا مساعدك الذكي الموجه. كيف يمكنني مساعدتك اليوم في مسائل المحاسبة أو الجوانب العلمية والتقنية؟
+            مرحباً بك. أنا مساعدك الموجه علمياً في المحاسبة، الاقتصاد، والقانون التجاري. يمكنك طرح أي سؤال أو وضعية ماليّة الآن وسأجيبك باختصار ودقة علمية صارمة.
         </div>
     </div>
 
     <div id="input-container">
-        <input type="text" id="user-input" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key === 'Enter') sendMessage()">
+        <input type="text" id="user-input" placeholder="اكتب سؤالك هنا المحاسبي أو المالي..." onkeypress="if(event.key === 'Enter') sendMessage()">
         <button onclick="sendMessage()">إرسال</button>
     </div>
 
     <script>
-        // تسجيل الـ Service Worker مع تصحيح المسار النسبي ليعمل داخل المجلد الفرعي
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('تم تسجيل الـ Service Worker بنجاح:', reg.scope))
-                .catch(err => console.log('فشل تسجيل الـ Service Worker:', err));
-            });
-        }
-
-        // دالة إرسال الرسائل وعرضها في الواجهة
         async function sendMessage() {
             const inputField = document.getElementById('user-input');
             const query = inputField.value.trim();
@@ -120,14 +106,13 @@
             appendMessage(query, 'user-message');
             inputField.value = '';
 
-            // إظهار مؤشر الانتظار
-            const loadingId = appendMessage('جاري التفكير الموجه...', 'ai-message');
+            const loadingId = appendMessage('جاري التحليل العلمي الموجه...', 'ai-message');
 
             try {
-                const reply = await askAI(query);
+                const reply = await askGeminiAI(query);
                 document.getElementById(loadingId).innerText = reply;
             } catch (error) {
-                document.getElementById(loadingId).innerText = 'عذراً، حدث خطأ أثناء الاتصال بالخادم الأصلي.';
+                document.getElementById(loadingId).innerText = 'عذراً، حدث خطأ أثناء الاتصال المباشر بالخادم سحابياً.';
             }
         }
 
@@ -143,17 +128,30 @@
             return id;
         }
 
-        // ربط الذكاء الاصطناعي وتوجيهه تلقائياً وصارماً
-        async function askAI(userQuery) {
-            // التوجيه الصارم والدقيق للذكاء الاصطناعي
-            const systemInstruction = "أنت مساعد تعليمي وخبير في المحاسبة والاقتصاد والنظام المحاسبي المالي (SCF). أجب باختصار شديد، وبشكل علمي وصارم، وركز على علاقة الأسئلة ببعضها البعض، وتجنب العبارات التسويقية تماماً.";
+        // الاتصال المباشر بـ Gemini API وتوجيهه
+        async function askGeminiAI(userQuery) {
+            // توجيه صارم ومبني على رغبتك في الدقة والعلمية والاختصار
+            const systemInstruction = "أنت مساعد تعليمي وخبير صارم في المحاسبة والاقتصاد والنظام المحاسبي المالي (SCF). أجب باختصار شديد وبشكل بسيط وعلمي دقيق. ركز على علاقة الأسئلة ببعضها البعض. يمنع منعاً باتاً استخدام العبارات التسويقية أو المقدمات الطويلة.";
             
-            // ملاحظة: هنا سنربط مفتاح الـ API المجاني الخاص بك لاحقاً، حالياً سنحاكي الاستجابة مؤقتاً للتجربة العلمية
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(`وصلني سؤالك: "${userQuery}". عندما نضع مفتاح الـ API المجاني هنا، سأجيبك فوراً بناءً على قواعد التوجيه العلمية الصارمة المعطاة لي.`);
-                }, 1000);
+            // رابط الـ API المجاني المباشر من جوجل للنسخة المستقرة
+            const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDq_ExampleKey_ReplaceWithYourActualKey";
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ 
+                        parts: [{ text: systemInstruction + "\n\nسؤال المستخدم: " + userQuery }] 
+                    }]
+                })
             });
+            
+            const data = await response.json();
+            if(data.candidates && data.candidates[0].content.parts[0].text) {
+                return data.candidates[0].content.parts[0].text;
+            } else {
+                return "لم أتمكن من معالجة الطلب، تأكد من إدخال مفتاح الـ API الصحيح.";
+            }
         }
     </script>
 </body>
