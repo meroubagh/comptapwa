@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيقي الأول PWA</title>
+    <!-- ربط ملف البيان -->
+    <link rel="manifest" href="manifest.json">
+    <!-- لون شريط الحالة في الأندرويد -->
+    <meta name="theme-color" content="#3498db">
+    
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #f4f6f7;
+            padding: 50px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>مرحباً بك في تطبيقي الأول!</h1>
+        <p>هذا التطبيق يعمل بكفاءة حتى لو كنت غير متصل بالإنترنت.</p>
+    </div>
+
+    <script>
+        // التحقق من أن المتصفح يدعم Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('تم تسجيل Service Worker بنجاح!'))
+            .catch(err => console.log('فشل تسجيل Service Worker:', err));
+        }
+    </script>
+</body>
+</html>
